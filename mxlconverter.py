@@ -84,11 +84,20 @@ for filename in os.listdir(folder_path):
     filename_clean = filename.replace('_', ' ').replace('.mxl', '')
 
     file_names = np.append(file_names, filename_clean)
+    single_song_notes = []
     single_song_chords = []
 
     notes_by_measure, chords_by_measure = extract_notes_and_chords_by_measure(file_path)
 
     if notes_by_measure and chords_by_measure:
+        for measure_number, notes in notes_by_measure.items():
+            try:
+                int_pitches = [note.pitch.midi for note in notes]
+                note_data.append(int_pitches)
+            except:
+                note_data.append([[]])
+                #print("Failed to convert") 
+
         for measure_number, chords in chords_by_measure.items():
             try: 
                 cleaned_chords = remove_extensions(chords)
@@ -98,6 +107,7 @@ for filename in os.listdir(folder_path):
                 single_song_chords.append([[]])
                 #print("Failed to convert")
     
+    note_data.append(single_song_notes)
     chord_data.append(single_song_chords)
 
     """
@@ -119,6 +129,9 @@ for filename in os.listdir(folder_path):
             except:
                 print("Failed to convert")
     """
+
+with open('note_data.pkl', 'wb') as f:
+    pickle.dump(note_data, f)
 
 with open('chord_data.pkl', 'wb') as f:
     pickle.dump(chord_data, f)
