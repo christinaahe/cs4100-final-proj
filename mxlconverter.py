@@ -93,9 +93,9 @@ for filename in os.listdir(folder_path):
         for measure_number, notes in notes_by_measure.items():
             try:
                 int_pitches = [note.pitch.midi for note in notes]
-                note_data.append(int_pitches)
+                single_song_notes.append(int_pitches)
             except:
-                note_data.append([[]])
+                note_data.append([[0]])
                 #print("Failed to convert") 
 
         for measure_number, chords in chords_by_measure.items():
@@ -104,11 +104,11 @@ for filename in os.listdir(folder_path):
                 int_pitches = convert_to_int(cleaned_chords)
                 single_song_chords.append(int_pitches)
             except:
-                single_song_chords.append([[]])
+                single_song_chords.append([0])
                 #print("Failed to convert")
     
     note_data.append(single_song_notes)
-    chord_data.append(single_song_chords)
+    chord_data.append([single_song_chords])
 
     """
     # Printing test
@@ -130,6 +130,7 @@ for filename in os.listdir(folder_path):
                 print("Failed to convert")
     """
 
+print(chord_data)
 with open('note_data.pkl', 'wb') as f:
     pickle.dump(note_data, f)
 
