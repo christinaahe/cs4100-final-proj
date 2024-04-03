@@ -1,36 +1,9 @@
+import music21
 from music21 import *
 import os
 import numpy as np
 import pickle 
 
-# def extract_notes_and_chords_by_measure(mxl_file_path):
-#     try:
-#         # Load the MXL file
-#         score = converter.parse(mxl_file_path)
-
-#         # Initialize dictionary to store notes and chords organized by measure
-#         notes_by_measure = {}
-#         chords_by_measure = {}
-
-#         # Extract notes and chords from the score
-#         for part in score.parts:
-#             for measure_number, measure in enumerate(part.getElementsByClass('Measure')):
-#                 measure_notes = []
-#                 measure_chords = []
-#                 try:
-#                     for element in measure.recurse():
-#                         if isinstance(element, note.Note):
-#                             measure_notes.append(element)
-#                         # elif isinstance(element, note.Rest):
-#                         #     measure_notes.append(element)
-#                         elif isinstance(element, chord.Chord):
-#                             measure_chords.append(element)
-#                     notes_by_measure.setdefault(measure_number, []).extend(measure_notes)
-#                     chords_by_measure.setdefault(measure_number, []).extend(measure_chords)
-#                 except Exception as e:
-#                     print(f"Error processing measure {measure_number} in {mxl_file_path}: {e}")
-
-#         return notes_by_measure, chords_by_measure
 def extract_notes_and_chords_by_measure(mxl_file_path):
     try:
         # Load the MXL file
@@ -45,9 +18,12 @@ def extract_notes_and_chords_by_measure(mxl_file_path):
                 measure_notes = []
                 measure_chords = []
                 for element in measure.recurse():
-                    if isinstance(element, note.Note):
+                    # print(type(element))
+                    if isinstance(element, music21.note.Note):
                         measure_notes.append(element)
-                    elif isinstance(element, chord.Chord):
+                    elif isinstance(element, music21.note.Rest):
+                        measure_notes.append(element)
+                    elif isinstance(element, music21.chord.Chord):
                         measure_chords.append(element)
                 notes_by_measure.setdefault(measure_number, []).extend(measure_notes)
                 chords_by_measure.setdefault(measure_number, []).extend(measure_chords)
@@ -84,6 +60,7 @@ def remove_extensions(chords):
             if nine_index != -1:
                 name = name.replace('9', '7')
 
+            # chord_length = max([n.quarterLength for n in chord.notes])
             cleaned_chords.append(name)
 
 
@@ -97,13 +74,12 @@ def convert_to_int(chords):
         int_pitches.append([p.midi for p in h.pitches])
     return int_pitches
 
-folder_path = r'C:\Users\rdela\Code Directory\CS4100\cs4100-final-proj\data'
+folder_path = r'/Users/christinahe/Documents/spring2024/cs4100/project/cs4100-final-proj/data'
 note_data = []
 chord_data = []
 file_names = np.array([])
 
 # Example usage
-# mxl_file_path = 'data/Afternoon_in_Paris.mxl'
 for filename in os.listdir(folder_path):
 
     # Construct the full file path
@@ -120,10 +96,9 @@ for filename in os.listdir(folder_path):
         for measure_number, notes in notes_by_measure.items():
             try:
                 int_pitches = []
-                # int_pitches = [(note.pitch.midi, note.duration.quarterLength) for note in notes]
                 for note in notes:
                     if note.isRest:
-                        int_pitches.append((0, note.duration.quarterLength))
+                        int_pitches.append((-1, note.duration.quarterLength))
                     elif note.isNote:
                         int_pitches.append((note.pitch.midi, note.duration.quarterLength))
 
@@ -164,11 +139,11 @@ for filename in os.listdir(folder_path):
     """
 
 # print(len(chord_data))
-with open('note_length_data.pkl', 'wb') as f:
+# with open('note_rest_data.pkl', 'wb') as f:
     
-    pickle.dump(note_data, f)
+#     pickle.dump(note_data, f)
 
-# with open('chord_data.pkl', 'wb') as f:
-#     pickle.dump(chord_data, f)
+with open('chord_data.pkl', 'wb') as f:
+    pickle.dump(chord_data, f)
 
 # np.savetxt('song_names.txt', file_names, fmt='%s')
