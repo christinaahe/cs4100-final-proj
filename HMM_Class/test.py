@@ -1,5 +1,5 @@
 import pickle
-
+import json
 import numpy as np
 from HMM import HiddenMarkovModel as hmm
 
@@ -76,6 +76,12 @@ def clean_notes(notes):
         return [notes_norests[0], notes_norests[2]]
     return []
 
+def tuple_notes(notes):
+    final = []
+    for piece in notes:
+        final.append([tuple(pair) for pair in piece])
+    return final
+
 def clean_data(chords, notes):
     all_chords = []
     all_notes = []
@@ -120,31 +126,66 @@ def clean_data(chords, notes):
         all_chords.append(cleaned_chords)
         all_notes.append(cleaned_notes)
 
-    return all_chords, all_notes
+    return all_chords, tuple_notes(all_notes)
 
 def join_pieces(data):
     final = []
     for piece in data:
         final = final + piece
-    return np.array(final)
+    return final
 
-clean_chords, clean_notes = clean_data(chords, notes)
-final_chords = join_pieces(clean_chords)
-final_notes = join_pieces(clean_notes)
 
-print(np.unique(final_notes, axis=0))
+# def unique_notes(notes):
+#     all = []
+#     for piece in notes:
+#         for pair in piece:
+#             all = all + pair
+#     return set(all)
 
-# for note in clean_chords:
-#     print(clean_chords.index(note))
-#     print(note)
-#     print("\n")
-# for piece in range(len(chords)):
-#     if chords[piece][0] is False:
-#         chords[piece].pop(0)
-#         notes[piece].pop(0)
-#     for measure in range(len(chords[piece])):
-#         for chord in
-        
+def get_mapping_dicts(data):
+    map_to_pair = dict(enumerate(set(data)))
+    pair_to_map = {val: key for key, val in map_to_pair.items()}
+    return map_to_pair, pair_to_map
+
+piece_chords, piece_notes = clean_data(chords, notes)
+
+
+separated_chords = join_pieces(piece_chords)
+separated_notes = join_pieces(piece_notes)
+
+map_to_pair, pair_to_map = get_mapping_dicts(separated_notes)
+piece_mapped_notes = [[pair_to_map[pair] for pair in piece] for piece in piece_notes]
+separated_mapped_notes = join_pieces(piece_mapped_notes)
+
+
+map_to_chords, chords_to_map = get_mapping_dicts([lst[0] for lst in separated_chords])
+piece_mapped_chords = [[chords_to_map[chord] for chord in piece] for piece in [[c[0] for c in p] for p in piece_chords]]
+separated_mapped_chords = join_pieces(piece_mapped_chords)
+
+
+# json_data = {
+#     "map_to_pair": map_to_pair,
+#     "pair_to_map": pair_to_map,
+#     "piece_mapped_notes": piece_mapped_notes, 
+#     "separated_mapped_notes": separated_mapped_notes,
+#     "map_to_chords":map_to_chords, 
+#     "chords_to_map": chords_to_map,
+#     "piece_mapped_chords": piece_mapped_chords, 
+#     "separated_mapped_chords": separated_mapped_chords
+# }
+
+
+# # Open the file in write mode and write the JSON data
+# with open("data.json", 'w') as json_file:
+#     json.dump(json_data, json_file)
+
+pickles = {'map_to_pair':map_to_pair, 'pair_to_map':pair_to_map, 'piece_mapped_notes':piece_mapped_notes,
+           'separated_mapped_notes':separated_mapped_notes, 'map_to_chords':map_to_chords, 'chords_to_map':chords_to_map, 
+           'piece_mapped_chords':piece_mapped_chords, 'separated_mapped_chords':separated_mapped_chords}
+for name, dict in pickles.items():
+    with open(name+'.pkl', 'wb') as f:
+        pickle.dump(dict, f)
+
         
 """4/4: 1 chord: 1 measure
 2 chords: 1 chord for 2 beats each
