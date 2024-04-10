@@ -34,19 +34,12 @@ def main():
     #for i in range(2):
 
         trained_models.append(models[i].train(notes_by_piece[i]))
-    emmissions = np.maximum([elem.E for elem in models], axis=0)
+    emmissions = np.mean([elem.E for elem in models], axis=0)
     transitions = np.mean([elem.T for elem in models], axis=0)
     print(emmissions)
     print(transitions)
-
-    """
-    model.train(sequence)
-    print(model.E)
-    print(model.T)
-    print(np.count_nonzero(model.E))
-    print(np.count_nonzero(model.T))
-    """
-
+    np.savetxt("transitions.csv", transitions, delimiter=",", fmt='%.20f')
+    np.savetxt("emissions.csv", emmissions, delimiter=",", fmt='%.20f')
 
 
 if __name__ == "__main__":

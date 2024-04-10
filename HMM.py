@@ -48,7 +48,6 @@ class HiddenMarkovModel:
 
     def backward(self, sequence):
         backward_vals = np.zeros((len(self.true_states), len(sequence)))
-        #for i in range(1, len(sequence) + 1, -1):
         for i in range(1, len(sequence) + 1):
             for j in range(len(self.true_states)):
                 # case for end of sequence
@@ -109,7 +108,6 @@ class HiddenMarkovModel:
                         # sum xi for numerator
                         T[i, j] += xi_probs[i, k, j]
                     # sum xi for denominator
-                    #xi_sum = np.array([eta_probs[i_x, k_x] for i_x in range(len(self.true_states)) for k_x in range(len(sequence))])
                     xi_sum = np.array([xi_probs[j, k_x, i_x] for k_x in range(len(sequence) - 1) for i_x in range(len(self.true_states))])
                     xi_sum = np.sum(xi_sum)
                     if xi_sum != 0:
