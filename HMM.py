@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 
@@ -17,29 +19,37 @@ class HiddenMarkovModel:
         self.E = emissions
         self.start_probs = start_probs
         self.end_probs = end_probs
+        # E: [state, observation]
+        # T: [state, next_state]
+        # B: [state, observation]
+        # F: [state, observation]
+        # eta: [state, observation]
+        # xi: [state, observation, next_state]
 
     def forward(self, sequence):
         forward_vals = np.zeros((len(self.true_states), len(sequence)))
         for i in range(len(sequence)):
+            state_idx = sequence[i]
             for j in range(len(self.true_states)):
                 # case for start of sequence
                 if i == 0:
-                    forward_vals[j, i] = self.start_probs[j] * self.E[j, i]
+                    forward_vals[j, i] = self.start_probs[j] * self.E[j, self.observable_states[state_idx]]
                 else:
                     vals = np.array(
                         [
-                            forward_vals[k, i - 1] * self.E[j, i] * self.T[k, j]
+                            forward_vals[k, i - 1] * self.E[j, self.observable_states[state_idx]] * self.T[k, j]
                             for k in range(len(self.true_states))
                         ]
                     )
-                    forward_vals[j, i] = forward_vals[j, i] = np.sum(vals)
+                    forward_vals[j, i] = np.sum(vals)
         end = np.multiply(forward_vals[:, -1], self.end_probs)
         end_val = np.sum(end)
         return forward_vals, end_val
 
     def backward(self, sequence):
         backward_vals = np.zeros((len(self.true_states), len(sequence)))
-        for i in range(1, len(sequence) + 1, -1):
+        #for i in range(1, len(sequence) + 1, -1):
+        for i in range(1, len(sequence) + 1):
             for j in range(len(self.true_states)):
                 # case for end of sequence
                 if i == 1:
@@ -47,13 +57,13 @@ class HiddenMarkovModel:
                 else:
                     vals = np.array(
                         [
-                            backward_vals[k, -i + 1] * self.E[k, -i + 1] * self.T[j, k]
+                            backward_vals[k, -i + 1] * self.E[k, self.observable_states[sequence[-i + 1]]] * self.T[k, j]
                             for k in range(len(self.true_states))
                         ]
                     )
-                    backward_vals = np.sum(vals)
+                    backward_vals[j, -i] = np.sum(vals)
         start_state = [
-            backward_vals[i, 0] * self.E[i, sequence[0]]
+            backward_vals[i, 0] * self.E[i, self.observable_states[sequence[0]]]
             for i in range(len(self.true_states))
         ]
         start_state = np.multiply(start_state, self.start_probs)
@@ -78,7 +88,7 @@ class HiddenMarkovModel:
                     xi_probs[j, i, k] = (
                         forward_probs[j, i]
                         * backward_probs[k, i + 1]
-                        * self.E[k, i + 1]
+                        * self.E[k, self.observable_states[sequence[i + 1]]] * self.T[j, k]
                     ) / forward_val
         return xi_probs
 
@@ -95,40 +105,40 @@ class HiddenMarkovModel:
             T = np.zeros(self.T.shape)
             for i in range(len(self.true_states)):
                 for j in range(len(self.true_states)):
-                    xi_sum = np.array(
-                        [
-                            xi_probs[i, k, j]
-                            for k in range(len(sequence) - 1)
-                            for i_x in range(len(self.true_states))
-                        ]
-                    )
-                    T[i, j] = np.sum(xi_sum)
-                    T_normalizer = np.sum(xi_sum)
-                    if T_normalizer != 0:
-                        T[i, j] /= T_normalizer
+                    for k in range(len(sequence) - 1):
+                        # sum xi for numerator
+                        T[i, j] += xi_probs[i, k, j]
+                    # sum xi for denominator
+                    #xi_sum = np.array([eta_probs[i_x, k_x] for i_x in range(len(self.true_states)) for k_x in range(len(sequence))])
+                    xi_sum = np.array([xi_probs[j, k_x, i_x] for k_x in range(len(sequence) - 1) for i_x in range(len(self.true_states))])
+                    xi_sum = np.sum(xi_sum)
+                    if xi_sum != 0:
+                        T[i, j] /= xi_sum
                     else:
                         T[i, j] = 0
             for i in range(len(self.true_states)):
-                for j in range(len(self.observable_states)):
-                    idxs = [
-                        k
-                        for k in range(len(sequence))
-                        if self.observable_states[i] == sequence[k]
-                    ]
-                    numerator = np.sum(eta_probs[i, idxs])
-                    denom = np.sum(eta_probs[i, :])
-                    if denom != 0:
-                        E[i, j] = numerator / denom
+                for j in range(len(sequence)):
+                    # get eta sums
+                    idxs = [k for k in range(len(sequence)) if sequence[k] == self.observable_states[j]]
+                    eta_sum_numerator = np.sum(eta_probs[i, idxs])
+                    eta_sum_denominator = np.sum(eta_probs[i, :])
+                    if eta_sum_denominator != 0:
+                        E[i, j] = eta_sum_numerator / eta_sum_denominator
                     else:
                         E[i, j] = 0
             self.E = E
             self.T = T
+            print("-----------------------")
+            print("Update Iteration Complete")
 
-            temp_forward_val = forward_val
+            temp_forward_val = copy.copy(forward_val)
             forward_probs, forward_val = self.forward(sequence)
+            print(temp_forward_val)
+            print(forward_val)
             diff = np.abs(forward_val - temp_forward_val)
-            if diff <= 0.00001:
+            if diff <= 0.0000001:
                 break
+
 
     def predict_algorithm(self, obs):
         # Step 2: Initialize Variables

@@ -13,6 +13,7 @@ with open("note_rest_data.pkl", "rb") as infile:
     notes.pop(43)
     notes.pop(30)
 
+
 def get_beats_per_chord(num_chords, beats_per_measure):
     if num_chords == 1:
         return [beats_per_measure]
@@ -30,9 +31,9 @@ def get_beats_per_chord(num_chords, beats_per_measure):
             return [2, 1]
     elif beats_per_measure == 8:
         if num_chords == 8:
-            return [1]*8
+            return [1] * 8
         elif num_chords == 4:
-            return [2]*4
+            return [2] * 4
         elif num_chords == 2:
             return [4, 4]
     elif beats_per_measure == 2:
@@ -43,10 +44,11 @@ def get_beats_per_chord(num_chords, beats_per_measure):
             return [0.5, 0.5]
     elif beats_per_measure == 6:
         if num_chords == 3:
-            return [2,2,2]
+            return [2, 2, 2]
     else:
         print('Pattern not specified', beats_per_measure, num_chords)
         return None
+
 
 def split_notes_by_chord(notes, beats_per_chord):
     notes_per_chord = []
@@ -65,22 +67,25 @@ def split_notes_by_chord(notes, beats_per_chord):
             count += 1
     return notes_per_chord
 
+
 def clean_notes(notes):
     notes_norests = [n for n in notes if n != -1]
     num_notes = len(notes_norests)
     if num_notes == 1:
-        return notes_norests*2
+        return notes_norests * 2
     if num_notes == 2:
         return notes_norests
     if num_notes >= 3:
         return [notes_norests[0], notes_norests[2]]
     return []
 
+
 def tuple_notes(notes):
     final = []
     for piece in notes:
         final.append([tuple(pair) for pair in piece])
     return final
+
 
 def clean_data(chords, notes):
     all_chords = []
@@ -100,7 +105,6 @@ def clean_data(chords, notes):
                 chords[piece].pop(index)
                 notes[piece].pop(index)
 
-    
         for measure in range(len(chords[piece])):
             beats_per_measure = round(sum([dur for _, dur in notes[piece][measure]]), 3)
             curr_chords = chords[piece][measure]
@@ -128,6 +132,7 @@ def clean_data(chords, notes):
 
     return all_chords, tuple_notes(all_notes)
 
+
 def join_pieces(data):
     final = []
     for piece in data:
@@ -147,8 +152,8 @@ def get_mapping_dicts(data):
     pair_to_map = {val: key for key, val in map_to_pair.items()}
     return map_to_pair, pair_to_map
 
-piece_chords, piece_notes = clean_data(chords, notes)
 
+piece_chords, piece_notes = clean_data(chords, notes)
 
 separated_chords = join_pieces(piece_chords)
 separated_notes = join_pieces(piece_notes)
@@ -157,20 +162,18 @@ map_to_pair, pair_to_map = get_mapping_dicts(separated_notes)
 piece_mapped_notes = [[pair_to_map[pair] for pair in piece] for piece in piece_notes]
 separated_mapped_notes = join_pieces(piece_mapped_notes)
 
-
 map_to_chords, chords_to_map = get_mapping_dicts([lst[0] for lst in separated_chords])
 piece_mapped_chords = [[chords_to_map[chord] for chord in piece] for piece in [[c[0] for c in p] for p in piece_chords]]
 separated_mapped_chords = join_pieces(piece_mapped_chords)
 
-
 # json_data = {
 #     "map_to_pair": map_to_pair,
 #     "pair_to_map": pair_to_map,
-#     "piece_mapped_notes": piece_mapped_notes, 
+#     "piece_mapped_notes": piece_mapped_notes,
 #     "separated_mapped_notes": separated_mapped_notes,
-#     "map_to_chords":map_to_chords, 
+#     "map_to_chords":map_to_chords,
 #     "chords_to_map": chords_to_map,
-#     "piece_mapped_chords": piece_mapped_chords, 
+#     "piece_mapped_chords": piece_mapped_chords,
 #     "separated_mapped_chords": separated_mapped_chords
 # }
 
@@ -179,14 +182,14 @@ separated_mapped_chords = join_pieces(piece_mapped_chords)
 # with open("data.json", 'w') as json_file:
 #     json.dump(json_data, json_file)
 
-pickles = {'map_to_pair':map_to_pair, 'pair_to_map':pair_to_map, 'piece_mapped_notes':piece_mapped_notes,
-           'separated_mapped_notes':separated_mapped_notes, 'map_to_chords':map_to_chords, 'chords_to_map':chords_to_map, 
-           'piece_mapped_chords':piece_mapped_chords, 'separated_mapped_chords':separated_mapped_chords}
+pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_notes,
+           'separated_mapped_notes': separated_mapped_notes, 'map_to_chords': map_to_chords,
+           'chords_to_map': chords_to_map,
+           'piece_mapped_chords': piece_mapped_chords, 'separated_mapped_chords': separated_mapped_chords}
 for name, dict in pickles.items():
-    with open(name+'.pkl', 'wb') as f:
+    with open(name + '.pkl', 'wb') as f:
         pickle.dump(dict, f)
 
-        
 """4/4: 1 chord: 1 measure
 2 chords: 1 chord for 2 beats each
 3 chords: 1 chord for 2 beats, 2 chords for 1 beat each
@@ -210,8 +213,8 @@ for name, dict in pickles.items():
 #     notes_array = np.array(notes[i])
 #     print(notes_array.shape)
 
-    # piece_array = np.vstack((), np.array(notes[i])))
-    # array_list.append(piece_array)
+# piece_array = np.vstack((), np.array(notes[i])))
+# array_list.append(piece_array)
 
 
 # hm = hmm(
