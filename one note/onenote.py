@@ -1,7 +1,7 @@
 import pickle
 import json
 import numpy as np
-from HMM import HiddenMarkovModel as hmm
+from collections import Counter
 
 with open("chord_data.pkl", "rb") as infile:
     chords = pickle.load(infile)
@@ -69,7 +69,7 @@ def split_notes_by_chord(notes, beats_per_chord):
 
 
 def clean_notes(notes):
-    notes_norests = [n for n in notes if n != -1]
+    notes_norests = [(n%12)+60 for n in notes if n != -1]
     num_notes = len(notes_norests)
     if num_notes == 1:
         return notes_norests * 2
@@ -155,40 +155,28 @@ def get_mapping_dicts(data):
 
 piece_chords, piece_notes = clean_data(chords, notes)
 
+piece_onenotes = [[pair[0] for pair in piece] for piece in piece_notes]
 separated_chords = join_pieces(piece_chords)
-separated_notes = join_pieces(piece_notes)
+separated_onenotes = join_pieces(piece_onenotes)
 
-map_to_pair, pair_to_map = get_mapping_dicts(separated_notes)
-piece_mapped_notes = [[pair_to_map[pair] for pair in piece] for piece in piece_notes]
-separated_mapped_notes = join_pieces(piece_mapped_notes)
+map_to_pair, pair_to_map = get_mapping_dicts(separated_onenotes)
+piece_mapped_onenotes = [[pair_to_map[pair] for pair in piece] for piece in piece_onenotes]
+separated_mapped_onenotes = join_pieces(piece_mapped_onenotes)
+print('note counter:', Counter(separated_onenotes))
+
 
 map_to_chords, chords_to_map = get_mapping_dicts([lst[0] for lst in separated_chords])
 piece_mapped_chords = [[chords_to_map[chord] for chord in piece] for piece in [[c[0] for c in p] for p in piece_chords]]
 separated_mapped_chords = join_pieces(piece_mapped_chords)
 
-# json_data = {
-#     "map_to_pair": map_to_pair,
-#     "pair_to_map": pair_to_map,
-#     "piece_mapped_notes": piece_mapped_notes,
-#     "separated_mapped_notes": separated_mapped_notes,
-#     "map_to_chords":map_to_chords,
-#     "chords_to_map": chords_to_map,
-#     "piece_mapped_chords": piece_mapped_chords,
-#     "separated_mapped_chords": separated_mapped_chords
-# }
 
-
-# # Open the file in write mode and write the JSON data
-# with open("data.json", 'w') as json_file:
-#     json.dump(json_data, json_file)
-
-pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_notes,
-           'separated_mapped_notes': separated_mapped_notes, 'map_to_chords': map_to_chords,
-           'chords_to_map': chords_to_map,
-           'piece_mapped_chords': piece_mapped_chords, 'separated_mapped_chords': separated_mapped_chords}
-for name, dict in pickles.items():
-    with open(name + '.pkl', 'wb') as f:
-        pickle.dump(dict, f)
+# pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_onenotes,
+#            'separated_mapped_notes': separated_mapped_onenotes, 'map_to_chords': map_to_chords,
+#            'chords_to_map': chords_to_map,
+#            'piece_mapped_chords': piece_mapped_chords, 'separated_mapped_chords': separated_mapped_chords}
+# for name, dict in pickles.items():
+#     with open(name + '.pkl', 'wb') as f:
+#         pickle.dump(dict, f)
 
 """4/4: 1 chord: 1 measure
 2 chords: 1 chord for 2 beats each

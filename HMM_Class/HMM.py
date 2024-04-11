@@ -130,39 +130,70 @@ class HiddenMarkovModel:
             if diff <= 0.00001:
                 break
 
-    def predict_algorithm(self, pi):
-        """
-            viterbi algorithm
-            :param y: observation sequence
-            :param A: the transition matrix
-            :param B: the emission matrix
-            :param pi: the initial probability distribution
-        """
-        B = self.E
-        A = self.T
-        y = self.observable_states
+    def predict_algorithm(self, obs):
+        # Step 2: Initialize Variables
+        predict_table = [
+            [0.0 for _ in range(len(self.true_states))] for _ in range(len(obs))
+        ]
+        backpointer = [
+            [0 for _ in range(len(self.true_states))] for _ in range(len(obs))
+        ]
 
-        N = B.shape[0]
-        x_seq = np.zeros([N, 0])
-        V = B[:, y[0]] * pi
+        # Step 3: Calculate Probabilities
+        for t in range(len(obs)):
+            for s in range(len(self.true_states)):
+                if t == 0:
+                    predict_table[t][s] = self.start_probs[s] * self.E[s][obs[t]]
+                else:
+                    max_prob = max(
+                        predict_table[t - 1][prev_s] * self.T[prev_s][s]
+                        for prev_s in range(len(self.true_states))
+                    )
+                    predict_table[t][s] = max_prob * self.E[s][obs[t]]
+                    backpointer[t][s] = max(
+                        range(len(self.true_states)),
+                        key=lambda prev_s: predict_table[t - 1][prev_s]
+                        * self.T[prev_s][s],
+                    )
 
-        # forward to compute a LIKELY value function V
-        for y_ in y[1:]:
-            _V = np.tile(B[:, y_], reps=[N, 1]).T * A.T * np.tile(V, reps=[N, 1])
-            # Normalize _V to get probabilities
-            _V /= np.sum(_V, axis=1, keepdims=True)
-            # Randomly select next state based on probabilities
-            x_ind = np.array([np.random.choice(N, p=_V[i]) for i in range(N)])
-            x_seq = np.hstack([x_seq, np.c_[x_ind]])
-            V = _V[np.arange(N), x_ind]
-        x_T = np.argmax(V)
+        # Step 4: Traceback and Find Best Path
+        best_path_prob = max(predict_table[-1])
+        best_path_pointer = max(
+            range(len(self.true_states)), key=lambda s: predict_table[-1][s]
+        )
+        best_path = [best_path_pointer]
+        for t in range(len(obs) - 1, 0, -1):
+            best_path.insert(0, backpointer[t][best_path[0]])
 
-        # backward to fetch optimal sequence
-        x_seq_opt, i = np.zeros(x_seq.shape[1]+1), x_seq.shape[1]-1
-        prev_ind = x_T
-        while i >= 0:
-            x_seq_opt[i] = prev_ind
-            i -= 1
-            prev_ind = x_seq[int(prev_ind), i]
-        return x_seq_opt
+        # Step 5: Return Best Path
+        return best_path
+
+def viterbi(y, A, B, pi):
+    """
+        viterbi algorithm
+        :param y: observation sequence
+        :param A: the transition matrix
+        :param B: the emission matrix
+        :param pi: the initial probability distribution
+    """
+    N = B.shape[0]
+    x_seq = np.zeros([N, 0])
+    V = B[:, y[0]] * pi
+
+    # forward to compute the optimal value function V
+    for y_ in y[1:]:
+        _V = np.tile(B[:, y_], reps=[N, 1]).T * A.T * np.tile(V, reps=[N, 1])
+        x_ind = np.argmax(_V, axis=1)
+        x_seq = np.hstack([x_seq, np.c_[x_ind]])
+        V = _V[np.arange(N), x_ind]
+    x_T = np.argmax(V)
+
+    # backward to fetch optimal sequence
+    x_seq_opt, i = np.zeros(x_seq.shape[1]+1), x_seq.shape[1]-1
+    prev_ind = x_T
+    while i >= 0:
+        x_seq_opt[i] = prev_ind
+        i -= 1
+        prev_ind = x_seq[int(prev_ind), i]
+    return x_seq_opt
 

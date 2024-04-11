@@ -33,11 +33,16 @@ class HiddenMarkovModel:
             for j in range(len(self.true_states)):
                 # case for start of sequence
                 if i == 0:
-                    forward_vals[j, i] = self.start_probs[j] * self.E[j, self.observable_states[state_idx]]
+                    forward_vals[j, i] = (
+                        self.start_probs[j]
+                        * self.E[j, self.observable_states[state_idx]]
+                    )
                 else:
                     vals = np.array(
                         [
-                            forward_vals[k, i - 1] * self.E[j, self.observable_states[state_idx]] * self.T[k, j]
+                            forward_vals[k, i - 1]
+                            * self.E[j, self.observable_states[state_idx]]
+                            * self.T[k, j]
                             for k in range(len(self.true_states))
                         ]
                     )
@@ -56,7 +61,9 @@ class HiddenMarkovModel:
                 else:
                     vals = np.array(
                         [
-                            backward_vals[k, -i + 1] * self.E[k, self.observable_states[sequence[-i + 1]]] * self.T[k, j]
+                            backward_vals[k, -i + 1]
+                            * self.E[k, self.observable_states[sequence[-i + 1]]]
+                            * self.T[k, j]
                             for k in range(len(self.true_states))
                         ]
                     )
@@ -80,14 +87,16 @@ class HiddenMarkovModel:
 
     def xi(self, forward_probs, backward_probs, forward_val, sequence):
         xi_probs = np.zeros(
-            (len(self.true_states), len(sequence) - 1, len(self.true_states)))
+            (len(self.true_states), len(sequence) - 1, len(self.true_states))
+        )
         for i in range(len(sequence) - 1):
             for j in range(len(self.true_states)):
                 for k in range(len(self.true_states)):
                     xi_probs[j, i, k] = (
                         forward_probs[j, i]
                         * backward_probs[k, i + 1]
-                        * self.E[k, self.observable_states[sequence[i + 1]]] * self.T[j, k]
+                        * self.E[k, self.observable_states[sequence[i + 1]]]
+                        * self.T[j, k]
                     ) / forward_val
         return xi_probs
 
@@ -108,16 +117,28 @@ class HiddenMarkovModel:
                         # sum xi for numerator
                         T[i, j] += xi_probs[i, k, j]
                     # sum xi for denominator
-                    xi_sum = np.array([xi_probs[j, k_x, i_x] for k_x in range(len(sequence) - 1) for i_x in range(len(self.true_states))])
+                    xi_sum = np.array(
+                        [
+                            xi_probs[j, k_x, i_x]
+                            for k_x in range(len(sequence) - 1)
+                            for i_x in range(len(self.true_states))
+                        ]
+                    )
                     xi_sum = np.sum(xi_sum)
                     if xi_sum != 0:
                         T[i, j] /= xi_sum
                     else:
                         T[i, j] = 0
             for i in range(len(self.true_states)):
-                for j in range(len(sequence)):
+                # for j in range(len(sequence)):
+                for j in range(len(self.observable_states)):
                     # get eta sums
-                    idxs = [k for k in range(len(sequence)) if sequence[k] == self.observable_states[j]]
+                    # idxs = [k for k in range(len(sequence)) if sequence[k] == self.observable_states[j]]
+                    idxs = [
+                        idx
+                        for idx, val in enumerate(sequence)
+                        if val == self.observable_states[j]
+                    ]
                     eta_sum_numerator = np.sum(eta_probs[i, idxs])
                     eta_sum_denominator = np.sum(eta_probs[i, :])
                     if eta_sum_denominator != 0:
@@ -137,44 +158,37 @@ class HiddenMarkovModel:
             if diff <= 0.0000001:
                 break
 
+    def predict_algorithm(self, y, pi=np.pi):
+        """
+        viterbi algorithm
+        :param y: observation sequence
+        :param A: the transition matrix
+        :param B: the emission matrix
+        :param pi: the initial probability distribution
+        """
 
-    def predict_algorithm(self, obs):
-        # Step 2: Initialize Variables
-        predict_table = [
-            [0.0 for _ in range(len(self.true_states))] for _ in range(len(obs))
-        ]
-        backpointer = [
-            [0 for _ in range(len(self.true_states))] for _ in range(len(obs))
-        ]
+        B = self.E
+        A = self.T
+        N = B.shape[0]
+        x_seq = np.zeros([N, 0])
+        V = B[:, y[0]] * pi
 
-        # Step 3: Calculate Probabilities
-        for t in range(len(obs)):
-            for s in range(len(self.true_states)):
-                if t == 0:
-                    predict_table[t][s] = self.start_probs[s] * self.E[s][obs[t]]
-                else:
-                    max_prob = max(
-                        predict_table[t - 1][prev_s] * self.T[prev_s][s]
-                        for prev_s in range(len(self.true_states))
-                    )
-                    predict_table[t][s] = max_prob * self.E[s][obs[t]]
-                    backpointer[t][s] = max(
-                        range(len(self.true_states)),
-                        key=lambda prev_s: predict_table[t - 1][prev_s]
-                        * self.T[prev_s][s],
-                    )
+        # forward to compute a LIKELY value function V
+        for y_ in y[1:]:
+            _V = np.tile(B[:, y_], reps=[N, 1]).T * A.T * np.tile(V, reps=[N, 1])
+            # Normalize _V to get probabilities
+            _V /= np.sum(_V, axis=1, keepdims=True)
+            # Randomly select next state based on probabilities
+            x_ind = np.array([np.random.choice(N, p=_V[i]) for i in range(N)])
+            x_seq = np.hstack([x_seq, np.c_[x_ind]])
+            V = _V[np.arange(N), x_ind]
+        x_T = np.argmax(V)
 
-        # Step 4: Traceback and Find Best Path
-        best_path_prob = max(predict_table[-1])
-        best_path_pointer = max(
-            range(len(self.true_states)), key=lambda s: predict_table[-1][s]
-        )
-        best_path = [best_path_pointer]
-        for t in range(len(obs) - 1, 0, -1):
-            best_path.insert(0, backpointer[t][best_path[0]])
-
-        # Step 5: Return Best Path
-        return best_path
-    
-
-
+        # backward to fetch optimal sequence
+        x_seq_opt, i = np.zeros(x_seq.shape[1] + 1), x_seq.shape[1] - 1
+        prev_ind = x_T
+        while i >= 0:
+            x_seq_opt[i] = prev_ind
+            i -= 1
+            prev_ind = x_seq[int(prev_ind), i]
+        return x_seq_opt
