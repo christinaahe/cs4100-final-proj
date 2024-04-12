@@ -27,28 +27,27 @@ class HiddenMarkovModel:
         # xi: [state, observation, next_state]
 
     def forward(self, sequence):
-        forward_vals = np.zeros((len(self.true_states), len(sequence)))
+        forward_vals = np.full((len(self.true_states), len(sequence)), -np.inf)
         for i in range(len(sequence)):
             state_idx = sequence[i]
             for j in range(len(self.true_states)):
-                # case for start of sequence
                 if i == 0:
                     forward_vals[j, i] = (
-                        self.start_probs[j]
-                        * self.E[j, self.observable_states[state_idx]]
+                        np.log(self.start_probs[j] + 1e-10)
+                        + np.log(self.E[j, self.observable_states[state_idx]] + 1e-10)
                     )
                 else:
                     vals = np.array(
                         [
                             forward_vals[k, i - 1]
-                            * self.E[j, self.observable_states[state_idx]]
-                            * self.T[k, j]
+                            + np.log(self.E[j, self.observable_states[state_idx]] + 1e-10)
+                            + np.log(self.T[k, j] + 1e-10)
                             for k in range(len(self.true_states))
                         ]
                     )
-                    forward_vals[j, i] = np.sum(vals)
-        end = np.multiply(forward_vals[:, -1], self.end_probs)
-        end_val = np.sum(end)
+                    forward_vals[j, i] = np.logaddexp.reduce(vals)
+        end = forward_vals[:, -1] + np.log(self.end_probs + 1e-10)
+        end_val = np.logaddexp.reduce(end)
         return forward_vals, end_val
 
     def backward(self, sequence):
@@ -103,7 +102,6 @@ class HiddenMarkovModel:
     def train(self, sequence):
         forward_probs, forward_val = self.forward(sequence)
         for _ in range(1000):
-            # forward_probs, forward_val = self.forward(sequence)
             backward_probs, backward_val = self.backward(sequence)
             eta_probs = self.eta(forward_probs, backward_probs, forward_val, sequence)
             xi_probs = self.xi(forward_probs, backward_probs, forward_val, sequence)
@@ -154,41 +152,61 @@ class HiddenMarkovModel:
             forward_probs, forward_val = self.forward(sequence)
             print(temp_forward_val)
             print(forward_val)
-            diff = np.abs(forward_val - temp_forward_val)
-            if diff <= 0.0000001:
+            diff = np.abs(np.exp(forward_val) - np.exp(temp_forward_val))
+            if diff <= 1e-30:
                 break
 
-    def predict_algorithm(self, y, pi=np.pi):
-        """
-        viterbi algorithm
-        :param y: observation sequence
-        :param A: the transition matrix
-        :param B: the emission matrix
-        :param pi: the initial probability distribution
-        """
-
+    def predict_algorithm(self, y, pi):
+        
+        print("Initial probabilities (pi):", pi)
+        
         B = self.E
         A = self.T
+        print("First row of transition matrix (A):", A[0])
+        print("First row of emission matrix (B):", B[0])
+        
         N = B.shape[0]
-        x_seq = np.zeros([N, 0])
+
+        x_seq = np.zeros(len(y), dtype=int)
+
+        x_seq[0] = np.random.choice(N, p=pi)
+
         V = B[:, y[0]] * pi
 
         # forward to compute a LIKELY value function V
-        for y_ in y[1:]:
+        for i, y_ in enumerate(y[1:], start=1):
+
+            print(B[:, y_].shape, A.shape, V.shape)  # Add this line to check the shapes
+            print(x_seq)
             _V = np.tile(B[:, y_], reps=[N, 1]).T * A.T * np.tile(V, reps=[N, 1])
-            # Normalize _V to get probabilities
-            _V /= np.sum(_V, axis=1, keepdims=True)
-            # Randomly select next state based on probabilities
-            x_ind = np.array([np.random.choice(N, p=_V[i]) for i in range(N)])
-            x_seq = np.hstack([x_seq, np.c_[x_ind]])
-            V = _V[np.arange(N), x_ind]
+            # print("First value of _V at step", i, ":", _V[0])
+            _V /= (np.sum(_V, axis=1, keepdims=True) + 1e-10)  # Add a small constant to avoid division by zero
+
+            # Normalize each row of _V to ensure that the probabilities sum to 1
+            _V = _V / _V.sum(axis=1, keepdims=True)
+
+            # 2/3 of the time, choose the optimal path
+            if np.random.choice([True, False], p=[2/3, 1/3]):
+                x_seq[i] = np.unravel_index(np.argmax(_V), _V.shape)[1]
+                print("Optimal")
+                print(x_seq[i])
+            else:
+                print("Random")
+                sorted_indices = np.argsort(_V[x_seq[i-1]])[::-1]
+                x_seq[i] = sorted_indices[1] if len(sorted_indices) > 1 else sorted_indices[0]
+                print(x_seq[i])
+
+            print(_V.shape)
+            V = _V[np.arange(N), x_seq[i]]  # update V
+
         x_T = np.argmax(V)
 
         # backward to fetch optimal sequence
-        x_seq_opt, i = np.zeros(x_seq.shape[1] + 1), x_seq.shape[1] - 1
+        x_seq_opt, i = np.zeros(len(x_seq)), len(x_seq) - 1
         prev_ind = x_T
         while i >= 0:
             x_seq_opt[i] = prev_ind
+            if i > 0:  # Only update prev_ind if there are more elements
+                prev_ind = x_seq[i-1]
             i -= 1
-            prev_ind = x_seq[int(prev_ind), i]
         return x_seq_opt
