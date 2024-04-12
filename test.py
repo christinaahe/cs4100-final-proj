@@ -3,6 +3,7 @@ import json
 import numpy as np
 from HMM import HiddenMarkovModel as hmm
 from collections import Counter
+import random
 
 with open("chord_data.pkl", "rb") as infile:
     chords = pickle.load(infile)
@@ -149,7 +150,9 @@ def join_pieces(data):
 #     return set(all)
 
 def get_mapping_dicts(data):
-    map_to_pair = dict(enumerate(set(data)))
+    unique_data = list(set(data))
+    random.shuffle(unique_data)
+    map_to_pair = dict(enumerate(unique_data))
     pair_to_map = {val: key for key, val in map_to_pair.items()}
     return map_to_pair, pair_to_map
 
@@ -167,33 +170,34 @@ separated_mapped_notes = join_pieces(piece_mapped_notes)
 map_to_chords, chords_to_map = get_mapping_dicts([lst[0] for lst in separated_chords])
 piece_mapped_chords = [[chords_to_map[chord] for chord in piece] for piece in [[c[0] for c in p] for p in piece_chords]]
 separated_mapped_chords = join_pieces(piece_mapped_chords)
+print(map_to_chords)
 
-bad_pairs = [40,  44,  57,  59,  62,  63,  64,  65,  66,  70,  71,  73,  74,
-        75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,  86,  87,
-        88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100,
-       101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
-       114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126,
-       127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138]
-
-
-# print([map_to_pair[i] for i in bad_pairs])
-notes_count = dict(Counter(separated_notes))
-
-bad_pairs_count = {map_to_pair[i]: notes_count[map_to_pair[i]] for i in bad_pairs}
-print("bad pairs:", bad_pairs_count)
-print("\n")
-
-good_pairs_count = {map_to_pair[i]: notes_count[map_to_pair[i]] for i in range(len(map_to_pair)) if i not in bad_pairs}
-print("good_pairs_count:", good_pairs_count)
+# bad_pairs = [40,  44,  57,  59,  62,  63,  64,  65,  66,  70,  71,  73,  74,
+#         75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,  86,  87,
+#         88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100,
+#        101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
+#        114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126,
+#        127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138]
 
 
-# pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_notes,
-#            'separated_mapped_notes': separated_mapped_notes, 'map_to_chords': map_to_chords,
-#            'chords_to_map': chords_to_map,
-#            'piece_mapped_chords': piece_mapped_chords, 'separated_mapped_chords': separated_mapped_chords}
-# for name, dict in pickles.items():
-#     with open(name + '.pkl', 'wb') as f:
-#         pickle.dump(dict, f)
+# # print([map_to_pair[i] for i in bad_pairs])
+# notes_count = dict(Counter(separated_notes))
+
+# bad_pairs_count = {map_to_pair[i]: notes_count[map_to_pair[i]] for i in bad_pairs}
+# print("bad pairs:", bad_pairs_count)
+# print("\n")
+
+# good_pairs_count = {map_to_pair[i]: notes_count[map_to_pair[i]] for i in range(len(map_to_pair)) if i not in bad_pairs}
+# print("good_pairs_count:", good_pairs_count)
+
+
+pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_notes,
+           'separated_mapped_notes': separated_mapped_notes, 'map_to_chords': map_to_chords,
+           'chords_to_map': chords_to_map,
+           'piece_mapped_chords': piece_mapped_chords, 'separated_mapped_chords': separated_mapped_chords}
+for name, dict in pickles.items():
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(dict, f)
 
 """4/4: 1 chord: 1 measure
 2 chords: 1 chord for 2 beats each
