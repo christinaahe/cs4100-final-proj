@@ -45,10 +45,10 @@ def main():
     # np.savetxt("transitions.csv", transitions, delimiter=",", fmt='%.150f')
     # np.savetxt("emissions.csv", emmissions, delimiter=",", fmt='%.150f')
 
-    with open("transitions.csv", "r") as infile:
-        transitions = np.genfromtxt(infile, delimiter=",")
-    with open("emissions.csv", "r") as infile:
-        emmissions = np.genfromtxt(infile, delimiter=",")
+    # with open("transitions.csv", "r") as infile:
+    #     transitions = np.genfromtxt(infile, delimiter=",")
+    # with open("emissions.csv", "r") as infile:
+    #     emmissions = np.genfromtxt(infile, delimiter=",")
 
     # print(np.where(emmissions[1, :] == 0))
     # print(emmissions.shape)
@@ -76,7 +76,7 @@ def main():
         map_to_chords = pickle.load(infile)
 
     print(map_to_chords)
-    
+
     first_probs = np.array([firsts.count(i) / n for i in unique_chords])
     first_probs /= first_probs.sum()
 
