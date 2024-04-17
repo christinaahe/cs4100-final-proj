@@ -118,32 +118,10 @@ for filename in os.listdir(folder_path):
     note_data.append(single_song_notes)
     chord_data.append(single_song_chords)
 
-    """
-    # Printing test
-    if notes_by_measure and chords_by_measure:
 
-
-#     print("Notes by Measure:")
-#     for measure_number, notes in notes_by_measure.items():
-#         print(f"Measure {measure_number}: {notes}")
-        
-        #print("\nChords by Measure: ", filename_clean)
-        for measure_number, chords in chords_by_measure.items():
-            try: 
-                cleaned_chords = remove_extensions(chords)
-                int_pitches = convert_to_int(cleaned_chords)
-                #print(f"Measure {measure_number}: {[chord for chord in cleaned_chords]}")
-
-            except:
-                print("Failed to convert")
-    """
-
-# print(len(chord_data))
 # with open('note_rest_data.pkl', 'wb') as f:
-    
 #     pickle.dump(note_data, f)
 
-with open('chord_data.pkl', 'wb') as f:
-    pickle.dump(chord_data, f)
+# with open('chord_data.pkl', 'wb') as f:
+#     pickle.dump(chord_data, f)
 
-# np.savetxt('song_names.txt', file_names, fmt='%s')

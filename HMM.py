@@ -162,69 +162,96 @@ class HiddenMarkovModel:
                 T[self.true_states[-1], self.true_states[-1]] = 1
             self.E = E
             self.T = T
-            self.start_probs = self.T[0]
-            self.end_probs = self.T[:, -1]
+            #self.start_probs = eta_probs[:, self.observable_states[sequence[0]]]
+            #self.start_probs = T[0]
+            #self.end_probs = eta_probs[:, self.observable_states[sequence[-1]]]
+            #self.end_probs = T[:, -1]
+
+            #self.start_probs = self.T[0]
+            #self.end_probs = self.T[:, -1]
             #print(eta_probs)
-            #print("-----------------------")
-            #print("Update Iteration Complete")
-            print(forward_val)
-            print(self.T)
+            print("-----------------------")
+            print("Update Iteration Complete")
+            #print(forward_val)
+            #print(self.T)
             temp_forward_val = copy.copy(forward_val)
             forward_probs, forward_val = self.forward(sequence)
             diff = np.abs(forward_val - temp_forward_val)
-            #if diff <= 0.0000001:
-            #    break
+            if diff <= 0.0000001:
+                break
         return xi_probs, eta_probs
 
-    def predict_algorithm(self, y, pi):
 
-        B = self.E
-        A = self.T
+    def predict_algorithm(self, obs):
+        # Step 2: Initialize Variables
+        predict_table = [
+            [0.0 for _ in range(len(self.true_states))] for _ in range(len(obs))
+        ]
+        backpointer = [
+            [0 for _ in range(len(self.true_states))] for _ in range(len(obs))
+        ]
 
-        N = B.shape[0]
+        # Step 3: Calculate Probabilities
+        for t in range(len(obs)):
+            for s in range(len(self.true_states)):
+                if t == 0:
+                    predict_table[t][s] = self.start_probs[s] * self.E[s][obs[t]]
+                else:
+                    max_prob = max(
+                        predict_table[t - 1][prev_s] * self.T[prev_s][s]
+                        for prev_s in range(len(self.true_states))
+                    )
+                    predict_table[t][s] = max_prob * self.E[s][obs[t]]
+                    backpointer[t][s] = max(
+                        range(len(self.true_states)),
+                        key=lambda prev_s: predict_table[t - 1][prev_s]
+                        * self.T[prev_s][s],
+                    )
 
-        x_seq = np.zeros(len(y), dtype=int)
+        # Step 4: Traceback and Find Best Path
+        best_path_prob = max(predict_table[-1])
+        best_path_pointer = max(
+            range(len(self.true_states)), key=lambda s: predict_table[-1][s]
+        )
+        best_path = [best_path_pointer]
+        for t in range(len(obs) - 1, 0, -1):
+            best_path.insert(0, backpointer[t][best_path[0]])
 
-        x_seq[0] = np.random.choice(N, p=pi)
+        # Step 5: Return Best Path
+        return np.array(best_path)
+    
+    def predict_chords(self, observations, top_n=3):
+        # Initialize variables
+        n_states = len(self.true_states)
+        n_observations = len(observations)
+        delta = np.zeros((n_states, n_observations))
+        psi = np.zeros((n_states, n_observations), dtype=int)
 
-        V = B[:, y[0]] * pi
+        # Initialization step
+        delta[:, 0] = self.start_probs * self.E[:, observations[0]]
 
-        # forward to compute a LIKELY value function V
-        for i, y_ in enumerate(y[1:], start=1):
+        # Recursion step
+        for t in range(1, n_observations):
+            for j in range(n_states):
+                # Calculate probabilities for top-N states
+                top_n_probs = delta[:, t-1] * self.T[:, j] * self.E[j, observations[t]]
+                # Select top-N states
+                top_n_states = np.argsort(top_n_probs)[::-1][:top_n]
+                # Randomly select one state from the top-N states
+                selected_state = np.random.choice(top_n_states)
+                delta[j, t] = top_n_probs[selected_state]
+                psi[j, t] = selected_state
 
-            print(B[:, y_].shape, A.shape, V.shape)  # Add this line to check the shapes
-            print(x_seq)
-            _V = np.tile(B[:, y_], reps=[N, 1]).T * A.T * np.tile(V, reps=[N, 1])
-            # print("First value of _V at step", i, ":", _V[0])
-            _V /= (np.sum(_V, axis=1, keepdims=True) + 1e-10)  # Add a small constant to avoid division by zero
+        # Termination step
+        p_max = np.max(delta[:, -1])
+        q_star = np.argmax(delta[:, -1])
 
-            # Normalize each row of _V to ensure that the probabilities sum to 1
-            _V = _V / _V.sum(axis=1, keepdims=True)
+        # Backtracking
+        states = [q_star]
+        for t in range(n_observations - 1, 0, -1):
+            states.insert(0, psi[states[0], t])
 
-            # 2/3 of the time, choose the optimal path
-            if np.random.choice([True, False], p=[2/3, 1/3]):
-                x_seq[i] = np.unravel_index(np.argmax(_V), _V.shape)[1]
-                print("Optimal")
-                print(x_seq[i])
-            else:
-                print("Random")
-                sorted_indices = np.argsort(_V[x_seq[i-1]])[::-1]
-                x_seq[i] = sorted_indices[1] if len(sorted_indices) > 1 else sorted_indices[0]
-                print(x_seq[i])
+        # Map state indices to true states (chords)
+        predicted_chords = [self.true_states[state] for state in states]
 
-            print(_V.shape)
-            V = _V[np.arange(N), x_seq[i]]  # update V
-
-        x_T = np.argmax(V)
-
-        # backward to fetch optimal sequence
-        x_seq_opt, i = np.zeros(len(x_seq)), len(x_seq) - 1
-        prev_ind = x_T
-        while i >= 0:
-            x_seq_opt[i] = prev_ind
-            if i > 0:  # Only update prev_ind if there are more elements
-                prev_ind = x_seq[i-1]
-            i -= 1
-        return x_seq_opt
-
-
+        return predicted_chords

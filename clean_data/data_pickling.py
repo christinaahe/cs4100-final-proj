@@ -1,7 +1,9 @@
 import pickle
 import json
 import numpy as np
+from HMM import HiddenMarkovModel as hmm
 from collections import Counter
+import random
 
 with open("chord_data.pkl", "rb") as infile:
     chords = pickle.load(infile)
@@ -140,38 +142,31 @@ def join_pieces(data):
     return final
 
 
-# def unique_notes(notes):
-#     all = []
-#     for piece in notes:
-#         for pair in piece:
-#             all = all + pair
-#     return set(all)
-
 def get_mapping_dicts(data):
-    map_to_pair = dict(enumerate(set(data)))
+    unique_data = list(set(data))
+    random.shuffle(unique_data)
+    map_to_pair = dict(enumerate(unique_data))
     pair_to_map = {val: key for key, val in map_to_pair.items()}
     return map_to_pair, pair_to_map
 
 
 piece_chords, piece_notes = clean_data(chords, notes)
 
-piece_onenotes = [[pair[0] for pair in piece] for piece in piece_notes]
 separated_chords = join_pieces(piece_chords)
-separated_onenotes = join_pieces(piece_onenotes)
+separated_notes = join_pieces(piece_notes)
 
-map_to_pair, pair_to_map = get_mapping_dicts(separated_onenotes)
-piece_mapped_onenotes = [[pair_to_map[pair] for pair in piece] for piece in piece_onenotes]
-separated_mapped_onenotes = join_pieces(piece_mapped_onenotes)
-print('note counter:', Counter(separated_onenotes))
 
+map_to_pair, pair_to_map = get_mapping_dicts(separated_notes)
+piece_mapped_notes = [[pair_to_map[pair] for pair in piece] for piece in piece_notes]
+separated_mapped_notes = join_pieces(piece_mapped_notes)
 
 map_to_chords, chords_to_map = get_mapping_dicts([lst[0] for lst in separated_chords])
 piece_mapped_chords = [[chords_to_map[chord] for chord in piece] for piece in [[c[0] for c in p] for p in piece_chords]]
 separated_mapped_chords = join_pieces(piece_mapped_chords)
 
 
-# pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_onenotes,
-#            'separated_mapped_notes': separated_mapped_onenotes, 'map_to_chords': map_to_chords,
+# pickles = {'map_to_pair': map_to_pair, 'pair_to_map': pair_to_map, 'piece_mapped_notes': piece_mapped_notes,
+#            'separated_mapped_notes': separated_mapped_notes, 'map_to_chords': map_to_chords,
 #            'chords_to_map': chords_to_map,
 #            'piece_mapped_chords': piece_mapped_chords, 'separated_mapped_chords': separated_mapped_chords}
 # for name, dict in pickles.items():
@@ -187,29 +182,3 @@ separated_mapped_chords = join_pieces(piece_mapped_chords)
 2 chords: 1 chord for 2 beats, 1 chord for 1 beat
 3 chords: 3 chords for 1 beat each
 """
-
-# layer 1: notes     v
-# layer 2: rhythm      !=
-# layer 3: chords    ^
-
-
-# array_list = []
-# for i in range(len(chords)):
-#     print(chords[i][1:])
-#     chord_array = np.array(chords[i][1:])
-#     print(chord_array.shape)
-#     notes_array = np.array(notes[i])
-#     print(notes_array.shape)
-
-# piece_array = np.vstack((), np.array(notes[i])))
-# array_list.append(piece_array)
-
-
-# hm = hmm(
-#     np.array(["H", "C"]),
-#     observable_states,
-#     transitions,
-#     emissions,
-#     start_probs,
-#     end_probs,
-# )
