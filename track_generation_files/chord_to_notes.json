@@ -1,0 +1,356 @@
+{
+    "A7": {
+        "midi_notes" : [69, 73, 76, 79]
+    },
+    "Bmaj7": {
+        "midi_notes" : [71, 75, 79, 83]
+    },
+    "E-m7": {
+        "midi_notes" : [64, 67, 71, 74]
+    },
+    "Dm": {
+        "midi_notes" : [62, 65, 69]
+    },
+    "Emaj7": {
+        "midi_notes" : [64, 68, 72, 76]
+    },
+    "Am11": {
+        "midi_notes" : [57, 60, 64, 67, 71]
+    },
+    "Eo7": {
+        "midi_notes" : [64, 67, 70, 73]
+    },
+    "A7 alter b5": {
+        "midi_notes" : [69, 73, 76, 80]
+    },
+    "F": {
+        "midi_notes" : [65, 69, 72]
+    },
+    "F#ø7": {
+        "midi_notes" : [66, 69, 72, 75]
+    },
+    "Gsus": {
+        "midi_notes" : [67, 72, 74]
+    },
+    "A-m7": {
+        "midi_notes" : [57, 60, 64, 67]
+    },
+    "B-7": {
+        "midi_notes" : [71, 74, 78, 81]
+    },
+    "G7": {
+        "midi_notes" : [67, 71, 74, 78]
+    },
+    "A-dim": {
+        "midi_notes" : [57, 60, 63]
+    },
+    "G-m7": {
+        "midi_notes" : [67, 71, 74, 77]
+    },
+    "CmM7": {
+        "midi_notes" : [60, 63, 67, 71]
+    },
+    "C-maj7": {
+        "midi_notes" : [60, 64, 67, 71]
+    },
+    "Gmaj7": {
+        "midi_notes" : [67, 71, 74, 78]
+    },
+    "D-7": {
+        "midi_notes" : [62, 65, 69, 72]
+    },
+    "Am7": {
+        "midi_notes" : [57, 60, 64, 67]
+    },
+    "Fm7": {
+        "midi_notes" : [65, 68, 72, 75]
+    },
+    "Em7": {
+        "midi_notes" : [64, 67, 71, 74]
+    },
+    "F#7": {
+        "midi_notes" : [66, 70, 73, 77]
+    },
+    "Dm7": {
+        "midi_notes" : [62, 65, 69, 72]
+    },
+    "Gø7": {
+        "midi_notes" : [67, 70, 73, 76]
+    },
+    "Dsus": {
+        "midi_notes" : [62, 67, 69]
+    },
+    "F#m7": {
+        "midi_notes" : [66, 69, 73, 76]
+    },
+    "E-7": {
+        "midi_notes" : [64, 67, 71, 74]
+    },
+    "G#o7": {
+        "midi_notes" : [68, 71, 74, 77]
+    },
+    "D-m7": {
+        "midi_notes" : [62, 65, 69, 72]
+    },
+    "Ddim": {
+        "midi_notes" : [62, 65, 68]
+    },
+    "D7": {
+        "midi_notes" : [62, 66, 69, 73]
+    },
+    "B7+": {
+        "midi_notes" : [71, 75, 79, 82]
+    },
+    "Adim": {
+        "midi_notes" : [57, 60, 63]
+    },
+    "C7+": {
+        "midi_notes" : [60, 64, 68, 71]
+    },
+    "Fø7": {
+        "midi_notes" : [65, 68, 71, 74]
+    },
+    "Amaj7": {
+        "midi_notes" : [57, 61, 64, 68]
+    },
+    "Fmaj7": {
+        "midi_notes" : [65, 69, 72, 76]
+    },
+    "D-": {
+        "midi_notes" : [62, 65, 69]
+    },
+    "Fo7": {
+        "midi_notes" : [65, 68, 71, 74]
+    },
+    "Co7": {
+        "midi_notes" : [60, 63, 66, 69]
+    },
+    "E-m": {
+        "midi_notes" : [64, 67, 71]
+    },
+    "B-m7": {
+        "midi_notes" : [71, 74, 78, 81]
+    },
+    "C": {
+        "midi_notes" : [60, 64, 67]
+    },
+    "Edim": {
+        "midi_notes" : [64, 67, 70]
+    },
+    "G#m7": {
+        "midi_notes" : [68, 71, 75, 78]
+    },
+    "B-sus": {
+        "midi_notes" : [71, 76, 78]
+    },
+    "B-M7": {
+        "midi_notes" : [71, 75, 79, 83]
+    },
+    "Am": {
+        "midi_notes" : [57, 60, 64]
+    },
+    "Bm7": {
+        "midi_notes" : [71, 74, 78, 81]
+    },
+    "G7 alter b5": {
+        "midi_notes" : [67, 71, 73, 78]
+    },
+    "E-sus": {
+        "midi_notes" : [64, 69, 71]
+    },
+    "D-maj7": {
+        "midi_notes" : [62, 65, 69, 73]
+    },
+    "C#dim": {
+        "midi_notes" : [61, 64, 67]
+    },
+    "B-o7": {
+        "midi_notes" : [71, 74, 77, 80]
+    },
+    "Fsus": {
+        "midi_notes" : [65, 70, 72]
+    },
+    "Dmaj7": {
+        "midi_notes" : [62, 66, 69, 73]
+    },
+    "B-dim": {
+        "midi_notes" : [71, 74, 77]
+    },
+    "A": {
+        "midi_notes" : [57, 61, 64]
+    },
+    "Cø7": {    
+        "midi_notes" : [60, 63, 66, 69]
+    },
+    "Gm": {
+        "midi_notes" : [67, 72, 74]
+    },
+    "F7+": {
+        "midi_notes" : [65, 69, 73, 76]
+    },
+    "C7 alter b5": {
+        "midi_notes" : [60, 64, 66, 71]
+    },
+    "Fdim": {
+        "midi_notes" : [65, 68, 71]
+    },
+    "Cm": {
+        "midi_notes" : [60, 63, 67]
+    },
+    "B-maj7": {
+        "midi_notes" : [71, 74, 78, 82]
+    },
+    "E-maj7": {
+        "midi_notes" : [64, 68, 71, 75]
+    },
+    "Cm11": {
+        "midi_notes" : [60, 63, 67, 70, 74]
+    },
+    "E-dim": {
+        "midi_notes" : [64, 67, 70]
+    },
+    "Bø7": {
+        "midi_notes" : [71, 74, 77, 80]
+    },
+    "D": {
+        "midi_notes" : [62, 66, 69]
+    },
+    "Fm": {
+        "midi_notes" : [65, 68, 72]
+    },
+    "F7 alter b5": {
+        "midi_notes" : [65, 69, 71, 76]
+    },
+    "D-dim": {
+        "midi_notes" : [62, 65, 68]
+    },
+    "B-7+": {
+        "midi_notes" : [71, 75, 79, 82]
+    },
+    "Cmaj7": {
+        "midi_notes" : [60, 64, 67, 71]
+    },
+    "G-maj7": {
+        "midi_notes" : [67, 71, 74, 78]
+    },
+    "A-7": {
+        "midi_notes" : [57, 60, 64, 67]
+    },
+    "C#m7": {
+        "midi_notes" : [61, 64, 68, 71]
+    },
+    "Esus": {
+        "midi_notes" : [64, 69, 71]
+    },
+    "F#dim": {
+        "midi_notes" : [66, 69, 72]
+    },
+    "Csus": {
+        "midi_notes" : [60, 65, 67]
+    },
+    "B7": {
+        "midi_notes" : [71, 75, 78, 82]
+    },
+    "Cm7": {
+        "midi_notes" : [60, 63, 67, 70]
+    },
+    "Asus": {
+        "midi_notes" : [57, 62, 64]
+    },
+    "B-": {
+        "midi_notes" : [71, 74, 78]
+    },
+    "C#7": {
+        "midi_notes" : [61, 65, 68, 72]
+    },
+    "Aø7": {
+        "midi_notes" : [57, 60, 63, 67]
+    },
+    "GmM7": {
+        "midi_notes" : [67, 70, 74, 78]
+    },
+    "A-": {
+        "midi_notes" : [57, 60, 64]
+    },
+    "F#o7": {
+        "midi_notes" : [66, 69, 72, 75]
+    },
+    "B7 alter b5": {
+        "midi_notes" : [71, 75, 77, 82]
+    },
+    "F7": {
+        "midi_notes" : [65, 69, 72, 75]
+    },
+    "Dø7": {
+        "midi_notes" : [62, 65, 68, 72]
+    },
+    "Em": {
+        "midi_notes" : [64, 67, 71]
+    },
+    "A-7 alter b5": {
+        "midi_notes" : [57, 60, 64, 68]
+    },
+    "Bm": {
+        "midi_notes" : [71, 74, 78]
+    },
+    "Ao7": {
+        "midi_notes" : [57, 60, 63, 66]
+    },
+    "C7": {
+        "midi_notes" : [60, 64, 67, 70]
+    },
+    "F#m": {
+        "midi_notes" : [66, 69, 73]
+    },
+    "B-m": {
+        "midi_notes" : [71, 74, 78]
+    },
+    "Bdim": {
+        "midi_notes" : [71, 74, 77]
+    },
+    "E7": {
+        "midi_notes" : [64, 68, 71, 75]
+    },
+    "A-o7": {
+        "midi_notes" : [57, 60, 63, 66]
+    },
+    "A-m": {
+        "midi_notes" : [57, 60, 64]
+    },
+    "G-7": {
+        "midi_notes" : [67, 70, 74, 77]
+    },
+    "G7+": {
+        "midi_notes" : [67, 71, 75, 77]
+    },
+    "Gm7": {
+        "midi_notes" : [67, 70, 74, 77]
+    },
+    "A-maj7": {
+        "midi_notes" : [57, 61, 64, 68]
+    },
+    "F#m alter b5": {
+        "midi_notes" : [66, 69, 72]
+    },
+    "F13": {
+        "midi_notes" : [65, 69, 72, 76, 79]
+    },
+    "D7+": {
+        "midi_notes" : [62, 66, 70, 72]
+    },
+    "E-": {
+        "midi_notes" : [64, 67, 71]
+    },
+    "Eø7": {
+        "midi_notes" : [64, 67, 70, 73]
+    },
+    "C#o7": {
+        "midi_notes" : [61, 64, 67, 70]
+    },
+    "D7 alter b5": {
+        "midi_notes" : [62, 66, 68, 73]
+    },
+    "G": {
+        "midi_notes" : [67, 71, 74]
+    }
+}
