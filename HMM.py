@@ -27,11 +27,15 @@ class HiddenMarkovModel:
         # xi: [state, observation, next_state]
 
     def forward(self, sequence):
+        """
+        calculates the joint probability of observed data up to time k and the state at time k
+        p(obsv 0:k, state k)
+        """
         forward_vals = np.zeros((len(self.true_states), len(sequence)))
         for i in range(len(sequence)):
             state_idx = sequence[i]
             for j in range(len(self.true_states)):
-                # case for start of sequence
+                # case for start of sequence (need this bc formula is recursive and must have start value)
                 if i == 0:
                     forward_vals[j, i] = self.start_probs[j] * self.E[j, self.observable_states[state_idx]]
                 else:
@@ -44,10 +48,14 @@ class HiddenMarkovModel:
         return forward_vals, end_val
 
     def backward(self, sequence):
+        """
+        calculates the conditional probabilities of the observed data from time k+1 given the state at time k
+        p(obsv k+1: | state k)
+        """
         backward_vals = np.zeros((len(self.true_states), len(sequence)))
         for i in range(1, len(sequence) + 1):
             for j in range(len(self.true_states)):
-                # case for end of sequence
+                # case for end of sequence (this is recursive and needs a start value)
                 if i == 1:
                     backward_vals[j, -i] = self.end_probs[j]
                 else:
@@ -67,6 +75,9 @@ class HiddenMarkovModel:
         return backward_vals, start_val
 
     def eta(self, forward_probs, backward_probs, forward_val, sequence):
+        """
+        calculates the probability distribution of states at each time k given the complete observation sequence
+        """
         eta_probs = np.zeros((len(self.true_states), len(sequence)))
         for i in range(len(sequence)):
             for j in range(len(self.true_states)):
@@ -76,6 +87,9 @@ class HiddenMarkovModel:
         return eta_probs
 
     def xi(self, forward_probs, backward_probs, forward_val, sequence):
+        """
+        calculates the joint probabilities of all consecutive state pairs given the complete observation sequence
+        """
         xi_probs = np.zeros(
             (len(self.true_states), len(sequence) - 1, len(self.true_states)))
         for i in range(len(sequence) - 1):
@@ -89,9 +103,11 @@ class HiddenMarkovModel:
         return xi_probs
 
     def train(self, sequence, iterations=1000, end=False):
+        """
+        tunes the transition and emission matrices so the model is maximally like the observed data
+        """
         forward_probs, forward_val = self.forward(sequence)
         for _ in range(iterations):
-            # forward_probs, forward_val = self.forward(sequence)
             backward_probs, backward_val = self.backward(sequence)
             eta_probs = self.eta(forward_probs, backward_probs, forward_val, sequence)
             xi_probs = self.xi(forward_probs, backward_probs, forward_val, sequence)
@@ -99,36 +115,6 @@ class HiddenMarkovModel:
             # recalculate transitions and emissions
             E = np.zeros(self.E.shape)
             T = np.zeros(self.T.shape)
-            """
-            for i in range(len(self.true_states)):
-                for j in range(len(self.true_states)):
-                    ###
-                    for k in range(len(sequence) - 1):
-                        # sum xi eta for numerator
-                        T[i, j] += xi_probs[i, k, j]
-                    ###
-                    T[i, j] = np.sum(xi_probs[i, :, j])
-                    # sum xi eta for denominator numerator
-                    #xi_sum = np.array([xi_probs[j, k_x, i_x] for k_x in range(len(sequence) - 1) for i_x in range(len(self.true_states))])
-                    #xi_sum = np.sum(xi_sum)
-                    eta_sum = np.sum(eta_probs[i])
-                    #if xi_sum != 0:
-                    #    T[i, j] /= xi_sum
-                    if eta_sum != 0:
-                        T[i, j] /= eta_sum
-                    else:
-                        T[i, j] = 0
-            """
-            print("---------------")
-            # for i in self.true_states:
-            #     state_prob = sum(eta_probs[i])
-            #     T[0, i] = eta_probs[i, 0]
-            #     if state_prob == 0:
-            #         T[i, :] = 0
-            #         continue
-            #     T[i, -1] = eta_probs[i, -1] / state_prob
-            #     for j in range(len(self.true_states) - 1):
-            #         T[i, j] = sum(xi_probs[i, :, j]) / state_prob
             for i in self.true_states:
                 state_prob = sum(eta_probs[i])
                 T[0, i] = eta_probs[i, 0]
@@ -162,18 +148,8 @@ class HiddenMarkovModel:
                 T[self.true_states[-1], self.true_states[-1]] = 1
             self.E = E
             self.T = T
-            #self.start_probs = eta_probs[:, self.observable_states[sequence[0]]]
-            #self.start_probs = T[0]
-            #self.end_probs = eta_probs[:, self.observable_states[sequence[-1]]]
-            #self.end_probs = T[:, -1]
-
-            #self.start_probs = self.T[0]
-            #self.end_probs = self.T[:, -1]
-            #print(eta_probs)
             print("-----------------------")
             print("Update Iteration Complete")
-            #print(forward_val)
-            #print(self.T)
             temp_forward_val = copy.copy(forward_val)
             forward_probs, forward_val = self.forward(sequence)
             diff = np.abs(forward_val - temp_forward_val)
